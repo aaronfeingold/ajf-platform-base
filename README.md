@@ -1,14 +1,6 @@
-# Property Tax Assessment Analysis Platform
+# Data Analytics Platform
 
-A Next.js application designed to analyze property tax assessments and generate leads for tax attorneys. This platform helps streamline the process of identifying potential cases for property tax appeals.
-
-## Overview
-
-This application provides:
-- Property tax assessment analysis tools
-- Lead generation capabilities for tax attorneys
-- Interactive data visualization
-- Custom dashboard interfaces
+A Next.js application designed to analyze some data. Can be used as a template to build upon.
 
 ## Prerequisites
 
@@ -29,20 +21,12 @@ First, install the dependencies:
 ```bash
 # npm was used in development of this project
 npm install
-# or if you prefer...
-yarn install
-# or
-pnpm install
 ```
 
 Then, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
 Open [http://localhost:3001](http://localhost:3001) with your browser to see the result.
