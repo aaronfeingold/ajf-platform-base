@@ -1,7 +1,9 @@
+"use client";
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { ReportState } from "@/store/types";
-import type { GetAllReportRecordCards } from "@/api/types";
-import { getAllReportRecordCards } from "@/api/report";
+import type { ReportState } from "@/types/store";
+import type { GetAllReportRecordCards } from "@/types/api";
+import { getAllReportRecordCards } from "@/actions/report";
 
 const initialState: ReportState = {
   data: {

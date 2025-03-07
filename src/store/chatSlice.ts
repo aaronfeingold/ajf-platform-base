@@ -1,12 +1,12 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { ChatState } from "@/store/types";
+import type { ChatState } from "@/types/store";
 import type { Conversation, ConversationMessage } from "@/types/chat";
 import type {
   GetAllConversationCards,
   GetAllConversationMessageCards,
-} from "@/api/types";
-import api, { handleApiResponse } from "@/lib/axios";
-import { CONVERSATION_MESSAGES, CONVERSATIONS } from "@/api/endpoints";
+} from "@/types/api";
+import api, { handleApiResponse } from "@/app/api/axios";
+import { CONVERSATION_MESSAGES, CONVERSATIONS } from "@/app/api/endpoints";
 
 const initialState: ChatState = {
   conversations: {

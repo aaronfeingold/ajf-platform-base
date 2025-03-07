@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Dispatch,
   createSlice,
@@ -6,9 +8,9 @@ import {
 } from "@reduxjs/toolkit";
 import type { AppDispatch } from "@/store/store";
 import type { ReportRequest } from "@/types/reportRequest";
-import type { ReportRequestState } from "@/store/types";
-import { getAllReportRequestRecordCards } from "@/api/reportRequest";
-import { GetAllReportRequestRecordCards } from "@/api/types";
+import type { ReportRequestState } from "@/types/store";
+import { getAllReportRequestRecordCards } from "@/actions/reportRequest";
+import { GetAllReportRequestRecordCards } from "@/types/api";
 
 // Constants for polling configuration
 const POLLING_INTERVAL = process.env.NODE_ENV === "development" ? 5000 : 30000; // 5s in dev, 30s in prod

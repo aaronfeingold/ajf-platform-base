@@ -1,4 +1,6 @@
-import type { GetAllPropertyRecordCards } from "@/api/types";
+"use client";
+
+import type { GetAllPropertyRecordCards } from "@/types/api";
 
 type LogLevel = "info" | "warn" | "error" | "debug";
 

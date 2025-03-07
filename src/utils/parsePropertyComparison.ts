@@ -1,3 +1,5 @@
+"use client";
+
 import { Report, PropertyComparison } from "../types/report";
 
 export interface ParsedReport {

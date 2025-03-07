@@ -1,8 +1,8 @@
 import "./globals.css";
-import SidebarWrapper from "@/components/Sidebar/SidebarWrapper";
-import { StoreProvider } from "@/components/Providers/StoreProvider";
+import type { Metadata } from "next";
+import ClientRootLayout from "@/components/Layouts/ClientRootLayout";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Ariba Dashboard",
   description: "Investor-ready dashboard",
 };
@@ -15,11 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="bg-gray-900 text-white">
-        <StoreProvider>
-          <div className="flex h-screen">
-            <SidebarWrapper>{children}</SidebarWrapper>
-          </div>
-        </StoreProvider>
+        <ClientRootLayout>{children}</ClientRootLayout>
       </body>
     </html>
   );

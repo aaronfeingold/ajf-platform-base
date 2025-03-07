@@ -1,38 +1,9 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import { signIn } from "next-auth/react";
 import { RootState } from "@/store/store";
-import { storage } from "@/store/storage/localStorage";
-import { login } from "@/api/auth";
-import type { AuthState } from "@/store/types";
+import type { AuthState } from "@/types/store";
+import { logger } from "@/utils/logger";
 
-// DEPRECATE THIS there is a betterway
-export const hydrateAuthFromStorage = createAsyncThunk(
-  "auth/hydrateFromStorage",
-  async (_, { rejectWithValue }) => {
-    try {
-      // Only run in browser
-      if (typeof window === "undefined") {
-        return rejectWithValue("Not in browser environment");
-      }
-
-      const access = localStorage.getItem("userAccessToken");
-      const refresh = localStorage.getItem("userRefreshToken");
-
-      if (!access || !refresh) {
-        return rejectWithValue("No tokens found");
-      }
-
-      return { access, refresh };
-    } catch (error) {
-      console.error("Error hydrating auth:", error);
-      return rejectWithValue(
-        error instanceof Error
-          ? error
-          : { message: "Failed to hydrate auth state" }
-      );
-    }
-  }
-);
-// Similarly enhanced login thunk
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (
@@ -40,14 +11,19 @@ export const loginUser = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await login(credentials.username, credentials.password);
+      const result = await signIn("credentials", {
+        username: credentials.username,
+        password: credentials.password,
+        redirect: false,
+      });
 
-      storage.setTokens(response.access, response.refresh);
+      if (result?.error) {
+        return rejectWithValue(result.error);
+      }
 
       return {
         username: credentials.username,
-        access: response.access,
-        refresh: response.refresh,
+        isAuthenticated: true,
       };
     } catch (error) {
       return rejectWithValue(error instanceof Error ? error : "Login failed");
@@ -55,38 +31,82 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-// Logout action remains the same
-export const logoutUser = createAsyncThunk("auth/logoutUser", async () => {
-  storage.clearTokens();
-  return null;
-});
+export const signOutUser = createAsyncThunk(
+  "auth/signOutUser",
+  async (_, { rejectWithValue }): Promise<boolean | unknown> => {
+    try {
+      logger.info("AuthSlice", "Clearing auth cookies");
+      try {
+        await fetch("/api/auth/clearCookies", {
+          method: "POST",
+          credentials: "include",
+        });
+        logger.debug("AuthSlice", "Auth cookies cleared successfully");
+      } catch (cookieError) {
+        logger.warn("AuthSlice", "Error clearing cookies:", cookieError);
+        // Continue with logout even if cookie clearing fails
+      }
 
-// Initial state
+      // Always return true to indicate success
+      // This ensures the process continues even if there are minor issues
+      return true;
+    } catch (error) {
+      logger.error("AuthSlice", "Logout failed:", error);
+      return rejectWithValue(error instanceof Error ? error : "Logout failed");
+    }
+  }
+);
+
 const initialState: AuthState = {
   user: {
-    access: null,
-    refresh: null,
+    username: null,
+    isAuthenticated: false,
   },
   status: "idle",
   error: null,
-  isAuthenticated: false,
 };
 
-// Create slice
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    setUser(state, action: PayloadAction<{ access: string; refresh: string }>) {
+    setUser(
+      state,
+      action: PayloadAction<{
+        username: string;
+        isAuthenticated: boolean;
+      }>
+    ) {
       state.user = action.payload;
     },
     clearUser(state) {
-      state.user = { access: null, refresh: null };
+      state.user = initialState.user;
+      state.status = "idle";
+      state.error = null;
+    },
+    // Immediately clear auth state (for emergency logout)
+    forceLogout(state) {
+      state.user = initialState.user;
+      state.status = "idle";
+      state.error = null;
+      logger.info("AuthSlice", "Force logout executed");
+    },
+    updateSessionStatus: (
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      state,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      action: PayloadAction<{
+        status: "authenticated" | "unauthenticated" | "loading";
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        userData: any;
+      }>
+    ) => {
+      // This action just triggers the middleware, doesn't need to modify state directly
     },
   },
   extraReducers: (builder) => {
     builder
-      // Login reducers
+      /* Login reducers */
       .addCase(loginUser.pending, (state) => {
         state.status = "loading";
       })
@@ -99,41 +119,36 @@ const authSlice = createSlice({
         state.status = "failed";
         state.error = action.payload as Error;
       })
-      // Logout reducers
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.user.access = null;
-        state.user.refresh = null;
-        state.status = "idle";
-      })
-      .addCase(hydrateAuthFromStorage.pending, (state) => {
+      .addCase(signOutUser.pending, (state) => {
         state.status = "loading";
+        logger.debug("AuthSlice", "Logout started");
+      })
+      .addCase(signOutUser.fulfilled, (state) => {
+        logger.debug("AuthSlice", "Logout succeeded, clearing auth state");
+        // Immediately clear state regardless of payload
+        state.status = "idle";
+        state.user = initialState.user;
         state.error = null;
       })
-      .addCase(hydrateAuthFromStorage.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.isAuthenticated = true;
-        state.user = {
-          ...state.user,
-          access: action.payload.access,
-          refresh: action.payload.refresh,
-        };
-        state.error = null;
-      })
-      .addCase(hydrateAuthFromStorage.rejected, (state, action) => {
-        state.status = "failed";
-        state.isAuthenticated = false;
-        state.user = {
-          access: null,
-          refresh: null,
-        };
+      .addCase(signOutUser.rejected, (state, action) => {
+        logger.warn(
+          "AuthSlice",
+          "Logout failed but clearing auth state anyway"
+        );
+        // Still clear state even if there's an error
+        state.status = "idle";
+        state.user = initialState.user;
         state.error = action.payload as Error;
       });
   },
 });
 
 export const selectIsAuthenticated = (state: RootState) =>
-  !!state.auth.user.access;
+  !!state.auth.user.isAuthenticated;
+export const selectAuthStatus = (state: RootState) => state.auth.status;
+export const selectAuthError = (state: RootState) => state.auth.error;
 
-export const { setUser, clearUser } = authSlice.actions;
+export const { setUser, clearUser, updateSessionStatus, forceLogout } =
+  authSlice.actions;
 
 export default authSlice.reducer;

@@ -2,18 +2,19 @@
 
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
+import { SessionProvider as NextAuthSessionProvider } from "next-auth/react";
 import { store, persistor } from "@/store/store";
+import { AuthSyncComponent } from "@/components/Providers/AuthSync";
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
-  if (!persistor) {
-    return <Provider store={store}>{children}</Provider>;
-  }
-
   return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        {children}
-      </PersistGate>
-    </Provider>
+    <NextAuthSessionProvider>
+      <Provider store={store}>
+        <AuthSyncComponent />
+        <PersistGate loading={null} persistor={persistor}>
+          {children}
+        </PersistGate>
+      </Provider>
+    </NextAuthSessionProvider>
   );
 }

@@ -20,9 +20,10 @@ import reportRequestReducer, {
 } from "@/store/reportRequestSlice";
 import chatReducer from "@/store/chatSlice";
 import userReducer from "@/store/userSlice";
-import type { AuthState } from "@/store/types";
-import { indexedDbStorage, getStorageSize } from "./storage/chunkedStorage";
-import { createLoggerMiddleware } from "@/middleware/reduxLoggerMiddleware";
+import type { AuthState } from "@/types/store";
+
+import { createLoggerMiddleware } from "@/store/middleware/reduxLoggerMiddleware";
+import { authSyncMiddleware } from "./middleware/authSyncMiddleware";
 
 /**
  * PERSISTED REDUCER CONFIGS
@@ -37,36 +38,11 @@ const authPersistConfig = {
   whitelist: ["user"],
 };
 
-/**
- * Property
- *   - Persist configuration using indexedDb
- *   - Only persist data and dataFetched fields
- */
-const propertyPersistConfig = {
-  key: "property",
-  storage: indexedDbStorage,
-  whitelist: ["data", "dataFetched"], // Only persist these fields
-  transforms: [
-    {
-      in: (state: unknown) => {
-        // stubs
-        return state;
-      },
-      out: (state: unknown) => {
-        // stubs
-        return state;
-      },
-    },
-  ],
-};
 
 /**
  * Persisted reducers: auth and property, localStorage and indexedDb respectively
  */
-const persistedPropertyReducer = persistReducer(
-  propertyPersistConfig,
-  propertyReducer
-);
+
 const persistedAuthReducer = persistReducer<AuthState>(
   authPersistConfig,
   authReducer
@@ -92,7 +68,7 @@ const pollingMiddleware: Middleware =
 export const store = configureStore({
   reducer: {
     auth: persistedAuthReducer,
-    property: persistedPropertyReducer,
+    property: propertyReducer,
     report: reportReducer,
     reportRequest: reportRequestReducer,
     chat: chatReducer,
@@ -104,6 +80,7 @@ export const store = configureStore({
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
     })
+      .prepend(authSyncMiddleware.middleware)
       .concat(pollingMiddleware)
       .concat(
         createLoggerMiddleware({
@@ -128,11 +105,11 @@ store.subscribe(() => {
 export const persistor = persistStore(store);
 
 // Helper function to monitor storage usage
-export const monitorStorageUsage = async () => {
-  const usage = await getStorageSize();
-  console.log("Storage usage:", usage);
-  return usage;
-};
+// export const monitorStorageUsage = async () => {
+//   const usage = await getStorageSize();
+//   console.log("Storage usage:", usage);
+//   return usage;
+// };
 
 // Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;

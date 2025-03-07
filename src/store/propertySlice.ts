@@ -1,34 +1,107 @@
+"use client";
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { AuthState, PropertyState } from "@/store/types";
-import { getAllPropertyRecordCards } from "@/api/property";
+import type { PropertyState } from "@/types/store";
+import { logger } from "@/utils/logger";
+import { indexedDBService } from "@/services/indexedDbService";
+import {
+  GetAllPropertyRecordCards,
+  GetPropertyRecordCardsListResponse,
+} from "@/types/api";
 
 export const fetchPropertyData = createAsyncThunk(
   "property/fetchData",
-  async (_, { getState, rejectWithValue }) => {
-    const state = getState() as {
-      property: PropertyState;
-      auth: AuthState;
-    };
+  async (
+    params: { pageSize?: number } = {},
+    { rejectWithValue }
+  ): Promise<GetAllPropertyRecordCards | unknown> => {
+    const { pageSize = 300 } = params;
+    logger.debug("PropertySlice", "Checking IndexedDB for property data");
+    const { data: cachedData, isFresh } =
+      await indexedDBService.getPropertyData();
 
     // If we already have data, don't fetch again, since data rarely changes
-    if (state.property.dataFetched) {
-      return state.property.data;
+    if (cachedData && isFresh) {
+      logger.info("PropertySlice", "Using cached property data from IndexedDB");
+      return cachedData;
     }
 
+    logger.info("PropertySlice", "Fetching fresh property data from API");
+
     try {
-      return getAllPropertyRecordCards();
+      const data = [];
+      let page = 1;
+      let count = 0;
+
+      while (true) {
+        const response = await fetch(
+          `/api/property?pageSize=${pageSize}&page=${page}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to generate analysis");
+        }
+        const chunk: GetPropertyRecordCardsListResponse = await response.json();
+        // after first iteration, count will be set
+        if (!count) count = chunk.count;
+        data.push(...chunk.results);
+
+        if (!chunk.next) break;
+        page++;
+      }
+
+      await indexedDBService.savePropertyData({ data, count });
+
+      return {
+        count,
+        data,
+        lastFetched: Date.now(),
+      } as GetAllPropertyRecordCards;
     } catch (error) {
       return rejectWithValue(
         error instanceof Error ? error : "Failed to fetch property data"
       );
     }
-  },
-  {
-    // This condition prevents the thunk from running if we're not authenticated
-    condition: (_, { getState }) => {
-      const state = getState() as { auth: AuthState };
-      return !!state.auth.user.access;
-    },
+  }
+);
+
+export const loadPropertyDataFromCache = createAsyncThunk(
+  "property/loadPropertyDataFromCache",
+  async (_, { rejectWithValue }) => {
+    try {
+      const { data } = await indexedDBService.getPropertyData();
+      return data;
+    } catch (error) {
+      logger.error(
+        "PropertySlice",
+        "Error loading property data from cache",
+        error
+      );
+      return rejectWithValue(
+        error instanceof Error ? error.message : "Unknown error"
+      );
+    }
+  }
+);
+
+export const clearPropertyData = createAsyncThunk(
+  "property/clearPropertyData",
+  async (_, { rejectWithValue }) => {
+    try {
+      return true;
+    } catch (error) {
+      logger.error("PropertySlice", "Error clearing property data", error);
+      return rejectWithValue(
+        error instanceof Error ? error.message : "Unknown error"
+      );
+    }
   }
 );
 
@@ -39,7 +112,7 @@ const initialState: PropertyState = {
   },
   status: "idle",
   error: null,
-  dataFetched: false,
+  lastFetched: null,
 };
 
 const propertySlice = createSlice({
@@ -53,15 +126,8 @@ const propertySlice = createSlice({
       state.data = action.payload;
       state.status = "succeeded";
     },
-    resetPropertyState: (state) => {
-      state.data = initialState.data;
-      state.status = "idle";
-      state.error = null;
-      state.dataFetched = false;
-    },
-    // Add a reducer to manually invalidate the cache if needed
     invalidateData: (state) => {
-      state.dataFetched = false;
+      state.lastFetched = null;
     },
   },
   extraReducers: (builder) => {
@@ -71,23 +137,38 @@ const propertySlice = createSlice({
       })
       .addCase(fetchPropertyData.fulfilled, (state, action) => {
         state.status = "succeeded";
-        state.data = action.payload;
-        state.dataFetched = true;
+        state.data = action.payload as GetAllPropertyRecordCards;
+        state.lastFetched = Date.now();
         state.error = null;
       })
       .addCase(fetchPropertyData.rejected, (state, action) => {
         state.status = "failed";
         state.error = (action.payload as Error) || "Failed to fetch data";
+      })
+      .addCase(loadPropertyDataFromCache.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(loadPropertyDataFromCache.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.status = "succeeded";
+          state.data = action.payload;
+          state.error = null;
+        } else {
+          state.status = "idle";
+        }
+      })
+      .addCase(loadPropertyDataFromCache.rejected, (state, action) => {
+        state.status = "idle";
+        state.error = (action.payload as Error) || "Unknown error";
+      })
+      .addCase(clearPropertyData.fulfilled, () => {
+        return initialState;
       });
   },
 });
 
-export const {
-  setLoading,
-  setPropertyData,
-  resetPropertyState,
-  invalidateData,
-} = propertySlice.actions;
+export const { setLoading, setPropertyData, invalidateData } =
+  propertySlice.actions;
 export default propertySlice.reducer;
 
 // Selectors

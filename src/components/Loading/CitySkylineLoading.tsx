@@ -1,6 +1,6 @@
 import React from "react";
 
-const CitySkylineLoading = ({ animated = false }) => (
+const CitySkylineLoading = ({ animated = false, infinite = false }) => (
   <>
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -24,7 +24,9 @@ const CitySkylineLoading = ({ animated = false }) => (
               }
               .building {
                 transform-origin: bottom;
-                animation: growUp 2s ease-out forwards;
+                animation: growUp 2s ease-out forwards ${
+                  infinite ? "infinite" : ""
+                };
               }
               .building-1 { animation-delay: 0s; }
               .building-2 { animation-delay: 0.2s; }

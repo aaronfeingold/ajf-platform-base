@@ -1,9 +1,11 @@
+"use client";
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import type { UserState } from "@/store/types";
-import { updatePassword } from "@/api/user";
-import type { AuthState } from "@/store/types";
-import { getAllUserRecordCards, getUserById } from "@/api/user";
-import { GetAllUserRecordCards, PaginationParams } from "@/api/types";
+import type { UserState } from "@/types/store";
+import { updatePassword } from "@/actions/user";
+import type { AuthState } from "@/types/store";
+import { getAllUserRecordCards, getUserById } from "@/actions/user";
+import { GetAllUserRecordCards, PaginationParams } from "@/types/api";
 import { User } from "@/types/user";
 
 const initialState: UserState = {
@@ -65,7 +67,7 @@ export const fetchUsers = createAsyncThunk<
     // This condition prevents the thunk from running if we're not authenticated
     condition: (_, { getState }) => {
       const state = getState() as { auth: AuthState };
-      return !!state.auth.user.access;
+      return !!state.auth.user.isAuthenticated;
     },
   }
 );
@@ -85,7 +87,7 @@ export const fetchUser = createAsyncThunk<User, number>(
   {
     condition: (_, { getState }) => {
       const state = getState() as { auth: AuthState };
-      return !!state.auth.user.access;
+      return !!state.auth.user.isAuthenticated;
     },
   }
 );
@@ -130,8 +132,10 @@ const userSlice = createSlice({
 export const { clearPasswordResetStatus } = userSlice.actions;
 
 // Selectors
-export const selectUserProfile = (state: { user: UserState }) => state.user.profile;
-export const selectPasswordResetStatus = (state: { user: UserState }) => state.user.passwordResetStatus;
+export const selectUserProfile = (state: { user: UserState }) =>
+  state.user.profile;
+export const selectPasswordResetStatus = (state: { user: UserState }) =>
+  state.user.passwordResetStatus;
 export const selectUserError = (state: { user: UserState }) => state.user.error;
 
 export default userSlice.reducer;

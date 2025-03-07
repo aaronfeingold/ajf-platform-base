@@ -1,6 +1,14 @@
-# Data Analytics Platform
+# Property Tax Assessment Analysis Platform
 
-A Next.js application designed to analyze some data. Can be used as a template to build upon.
+A Next.js application designed to analyze property tax assessments and generate leads for tax attorneys. This platform helps streamline the process of identifying potential cases for property tax appeals.
+
+## Overview
+
+This application provides:
+- Property tax assessment analysis tools
+- Lead generation capabilities for tax attorneys
+- Interactive data visualization
+- Custom dashboard interfaces
 
 ## Prerequisites
 
@@ -38,9 +46,10 @@ Create a `.env.local` file in the root directory with the following variables:
 
 ```env
 NODE_ENV=development
-NEXT_PUBLIC_API_URL=http://localhost:3000
-NEXT_PUBLIC_ENABLE_LOGGING=true
+API_URL=http://localhost:3000
+NEXTAUTH_SECRET="foobar"
 ```
+- you can generate a new auth secret with many tools of course, though vercel offers [this one](https://www.npmjs.com/package/auth)
 
 ## Key Libraries and Tools
 
@@ -75,19 +84,19 @@ To add new UI components using shadcn/ui:
 
 1. First-time setup:
 ```bash
-npx shadcn-ui@latest init
+npx shadcn@canary init
 ```
 
 2. Add individual components:
 ```bash
-npx shadcn-ui@canary add [component-name]
+npx shadcn@canary add [component-name]
 ```
 
 Example:
 ```bash
-npx shadcn-ui@canary add button
-npx shadcn-ui@canary add card
-npx shadcn-ui@canary add dialog
+npx shadcn@canary add button
+npx shadcn@canary add card
+npx shadcn@canary add dialog
 ```
 
 ## Learn More

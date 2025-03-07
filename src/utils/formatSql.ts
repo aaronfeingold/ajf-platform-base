@@ -1,3 +1,5 @@
+"use client";
+
 const formatSql = (sql: string) => {
   try {
     const parsed = JSON.parse(sql);

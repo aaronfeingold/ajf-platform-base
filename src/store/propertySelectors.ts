@@ -1,6 +1,8 @@
+"use client";
+
 import { createSelector } from "@reduxjs/toolkit";
 import type { AdvancedSearchForm } from "@/types/search";
-import type { GetAllPropertyRecordCards } from "@/api/types";
+import type { GetAllPropertyRecordCards } from "@/types/api";
 import { selectAllProperties } from "@/store/propertySlice";
 
 // Helper function to check if a value is within a range
