@@ -6,13 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
-  //   TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import type { RootState } from "@/store/store";
-// import BoxWhiskerChart from "@/app/reportsDashboard/report/[id]/BoxAndWhiskerChart";
+
 import { ArrowLeft } from "lucide-react";
 import { parsePropertyComparison } from "@/utils/parsePropertyComparison";
 import { useAppSelector } from "@/store/hooks";
@@ -32,12 +31,16 @@ const formatCurrency = (value: number) => {
 };
 
 /*
- * Report Page: shows a detailed analysis report by id, and allow update (feature not implemented)
+ * Report Request Slug Page: shows a detailed analysis report by id, and allow update (feature not implemented)
  */
-export default function ReportPage() {
+
+// TODO: we should be able to update a report request from here, and send it back to api for re-analysis
+// during this time, this report request is pending...
+// we should also be able to delete a report request from here
+export default function ReportRequestPage() {
   const router = useRouter();
   const { id } = useParams();
-  // find the report in state that matches the id from params
+
   const report = useAppSelector((state: RootState) =>
     state.report.data.data.find((r) => r.id === Number(id))
   );
@@ -65,6 +68,7 @@ export default function ReportPage() {
   // todo: the return type of the report comparison is an array of results
   // one from each time the report was run
   // so, parse the string into a JSON array and get the last result, which should be the newest
+  // NOTE: we are showing only the most recent report result
   let latestComparable = {} as PropertyComparison;
   if (report && typeof report.result === "string") {
     try {
@@ -142,22 +146,7 @@ export default function ReportPage() {
             <CardHeader>
               <CardTitle>Prediction</CardTitle>
             </CardHeader>
-            <CardContent>
-              {/* <dl className="space-y-2">
-                <div>
-                  <dt className="font-medium">Market Value:</dt>
-                  <dd>{formatCurrency(sourceProperty.marketValue)}</dd>
-                </div>
-                <div>
-                  <dt className="font-medium">Potential Change:</dt>
-                  <dd>{formatCurrency(sourceProperty.potentialChange)}</dd>
-                </div>
-                <div>
-                  <dt className="font-medium">Percent Change:</dt>
-                  <dd>{sourceProperty.percentChange}%</dd>
-                </div>
-              </dl> */}
-            </CardContent>
+            <CardContent></CardContent>
           </Card>
         </div>
       </section>
@@ -172,42 +161,21 @@ export default function ReportPage() {
             <CardHeader>
               <CardTitle>Total Square Feet</CardTitle>
             </CardHeader>
-            <CardContent>
-              {/* <BoxWhiskerChart
-                title="Total Square Feet"
-                stats={latestComparable.totalSf}
-                formatter={(value) => value.toLocaleString()}
-                color="#4169E1"
-              /> */}
-            </CardContent>
+            <CardContent></CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle>Total Assessed Value</CardTitle>
             </CardHeader>
-            <CardContent>
-              {/* <BoxWhiskerChart
-                title="Assessed Value"
-                stats={latestComparable.assessedValue}
-                formatter={formatCurrency}
-                color="#4169E1"
-              /> */}
-            </CardContent>
+            <CardContent></CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle>Price per SF</CardTitle>
             </CardHeader>
-            <CardContent>
-              {/* <BoxWhiskerChart
-                title="Value / SF"
-                stats={latestComparable.pricePerSF}
-                formatter={formatCurrency}
-                color="#4169E1"
-              /> */}
-            </CardContent>
+            <CardContent></CardContent>
           </Card>
         </div>
       </section>
@@ -228,19 +196,7 @@ export default function ReportPage() {
                 <TableHead>YoY Change</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {/* {latestComparable.map((parcel) => (
-                <TableRow key={parcel.parcelNumber}>
-                  <TableCell>{parcel.parcelNumber}</TableCell>
-                  <TableCell>{parcel.address}</TableCell>
-                  <TableCell>{parcel.ownerName}</TableCell>
-                  <TableCell>{parcel.totalSF.toLocaleString()}</TableCell>
-                  <TableCell>{formatCurrency(parcel.saleAmount)}</TableCell>
-                  <TableCell>{formatCurrency(parcel.pricePerSF)}</TableCell>
-                  <TableCell>{parcel.yoyChange}%</TableCell>
-                </TableRow>
-              ))} */}
-            </TableBody>
+            <TableBody></TableBody>
           </Table>
         </div>
       </section>

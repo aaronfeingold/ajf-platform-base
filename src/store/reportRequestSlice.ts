@@ -9,8 +9,10 @@ import {
 import type { AppDispatch } from "@/store/store";
 import type { ReportRequest } from "@/types/reportRequest";
 import type { ReportRequestState } from "@/types/store";
-import { getAllReportRequestRecordCards } from "@/actions/reportRequest";
-import { GetAllReportRequestRecordCards } from "@/types/api";
+import {
+  GetAllReportRequestRecordCards,
+  GetReportRequestListResponse,
+} from "@/types/api";
 
 // Constants for polling configuration
 const POLLING_INTERVAL = process.env.NODE_ENV === "development" ? 5000 : 30000; // 5s in dev, 30s in prod
@@ -40,8 +42,42 @@ const initialState: ReportRequestState = {
   },
 };
 
-// Thunk for fetching reports requests
-// TODO: BUILD OUT THE THUNK
+export const getAllReportRequestRecordCards = async (
+  pageSize = 500
+): Promise<GetAllReportRequestRecordCards> => {
+  const data: ReportRequest[] = [];
+  let page = 1;
+  let count = 0;
+
+  while (true) {
+    const response = await fetch(
+      `/api/reportRequests?pageSize=${pageSize}&page=${page}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to generate analysis");
+    }
+    const chunk: GetReportRequestListResponse = await response.json();
+    if (!count) count = chunk.count;
+    data.push(...chunk.results);
+
+    if (!chunk.next) break;
+    page++;
+  }
+
+  return {
+    count,
+    data,
+    lastFetched: Date.now(),
+  };
+};
+
 export const fetchReportRequests = createAsyncThunk(
   "reportRequests/fetchReportRequests",
   async (): Promise<GetAllReportRequestRecordCards> => {

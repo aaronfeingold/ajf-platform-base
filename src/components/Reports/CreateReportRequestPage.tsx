@@ -24,13 +24,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-// import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/store/hooks";
 import { submitNewReportRequest } from "@/store/reportRequestSlice";
 import { propertyClasses } from "@/types/property";
 import type { ReportRequest } from "@/types/reportRequest";
 
-export default function NewReportRequestWidget() {
+export default function CreateReportRequestPage() {
   const searchParams = useSearchParams();
   const [parcelNumber, setParcelNumber] = useState<number>(0);
   const [maxPeers, setMaxPeers] = useState("10");
@@ -42,9 +41,10 @@ export default function NewReportRequestWidget() {
     ReportRequest,
     "id" | "status" | "created" | "updated"
   > | null>(null);
-  //   const router = useRouter();
+
   const dispatch = useAppDispatch();
-  // Set initial parcel number from URL params
+  // Set initial parcel number from URL params if exists
+  // otherwise user will need to select parcel from dropdown
   useEffect(() => {
     const parcelParam = searchParams.get("parcel");
     if (parcelParam) {

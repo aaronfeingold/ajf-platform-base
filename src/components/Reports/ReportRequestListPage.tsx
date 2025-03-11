@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useAppSelector } from "@/store/hooks";
-import type { ReportRequest } from "@/types/reportRequest";
+import { useEffect, useRef } from "react";
+import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -16,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, ExternalLink } from "lucide-react";
 import Link from "next/link";
-import ReportModal from "./ReportModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,17 +22,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ReportRequestStatus } from "@/types/reportRequest";
+import { fetchReportRequests } from "@/store/reportRequestSlice";
 
-/*
- * ReportsDashboard: shows a list of Report Requests (status etc), and a Widget to create a new report
- */
-export default function ReportRequestsListWidget() {
+export default function ReportRequestListPage() {
+  const ref = useRef(false);
+  const dispatch = useAppDispatch();
   const {
     data: { data },
     status,
   } = useAppSelector((state) => state.reportRequest);
-  const [selectedReportRequest, setSelectedReportRequest] =
-    useState<ReportRequest | null>(null);
+
+  useEffect(() => {
+    if (ref.current) return;
+    ref.current = true;
+    dispatch(fetchReportRequests());
+  }, []);
 
   const formatSql = (sql: string) => {
     try {
@@ -64,15 +66,6 @@ export default function ReportRequestsListWidget() {
 
   return (
     <>
-      {selectedReportRequest && (
-        <ReportModal
-          isOpen={!!selectedReportRequest}
-          onClose={() => setSelectedReportRequest(null)}
-          reportRequestId={selectedReportRequest.id}
-          sourceParcelNumber={selectedReportRequest.sourceParcelNumber}
-        />
-      )}
-
       <div className="container mx-auto p-6">
         <Card>
           <CardHeader>
@@ -131,20 +124,12 @@ export default function ReportRequestsListWidget() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() =>
-                                setSelectedReportRequest(reportRequest)
-                              }
-                            >
-                              <Eye className="h-4 w-4 mr-2" />
-                              Quick Preview
-                            </DropdownMenuItem>
                             <DropdownMenuItem asChild>
                               <Link
-                                href={`/reportsDashboard/reportRequests/${reportRequest.id}`}
+                                href={`/reports/reportRequests/${reportRequest.id}`}
                               >
                                 <ExternalLink className="h-4 w-4 mr-2" />
-                                Full Report Request
+                                View Full Report Request
                               </Link>
                             </DropdownMenuItem>
                           </DropdownMenuContent>

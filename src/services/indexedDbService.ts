@@ -14,12 +14,10 @@ import {
 class IndexedDBService {
   private dbPromise: Promise<IDBPDatabase<PropertyDBSchema>> | null = null;
 
-  // Initialize the database
   private async getDB(): Promise<IDBPDatabase<PropertyDBSchema>> {
     if (!this.dbPromise) {
       this.dbPromise = openDB<PropertyDBSchema>(DB_NAME, DB_VERSION, {
         upgrade(db) {
-          // Create the object store if it doesn't exist
           if (!db.objectStoreNames.contains(STORE_NAME)) {
             db.createObjectStore(STORE_NAME);
             logger.info("IndexedDBService", "Created property store");
@@ -42,7 +40,6 @@ class IndexedDBService {
     return this.dbPromise;
   }
 
-  // Save property data to IndexedDB
   async savePropertyData(data: GetAllPropertyRecordCards): Promise<void> {
     try {
       const db = await this.getDB();
@@ -61,7 +58,6 @@ class IndexedDBService {
     }
   }
 
-  // Get property data from IndexedDB
   async getPropertyData(): Promise<{
     data: GetAllPropertyRecordCards | null;
     isFresh: boolean;
@@ -93,7 +89,7 @@ class IndexedDBService {
     }
   }
 
-  // Clear property data on logout
+  // Run on logout
   async clearPropertyData(): Promise<void> {
     try {
       const db = await this.getDB();

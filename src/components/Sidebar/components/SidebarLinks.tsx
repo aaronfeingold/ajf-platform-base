@@ -25,7 +25,7 @@ interface SidebarLink {
 const links: SidebarLink[] = [
   { href: "/dashboard", icon: Gauge, name: "Dashboard" },
   { href: "/chat", icon: FiMessageSquare, name: "Chat" },
-  { href: "/reportsDashboard", icon: FiBarChart2, name: "Reports Dashboard" },
+  { href: "/reports", icon: FiBarChart2, name: "Reports" },
   { href: "/upload", icon: FiUpload, name: "Upload" },
   { href: "/profile", icon: FiUser, name: "Profile" },
   { href: "/settings", icon: FiSettings, name: "Settings" },

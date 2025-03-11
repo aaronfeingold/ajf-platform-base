@@ -21,7 +21,7 @@ authSyncMiddleware.startListening({
     );
 
     if (status === "authenticated" && !state.auth.user.isAuthenticated) {
-      // Set authenticated user
+
       listenerApi.dispatch(
         setUser({
           username: userData?.name || "User",
