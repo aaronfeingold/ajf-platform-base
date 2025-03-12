@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { camelizeKeys } from "humps";
 import { handleRouteError } from "@/app/api/util";
-import { REPORT_REQUESTS } from "@/app/api/endpoints";
-import type { GetReportRequestListResponse } from "@/types/api";
+import { REPORTS } from "@/app/api/endpoints";
+import type { GetReportRecordsListResponse } from "@/types";
 
 export async function GET(request: NextRequest) {
   const url = new URL(request.url);
@@ -19,9 +19,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const response = await handleApiResponse<
-      Promise<GetReportRequestListResponse>
+      Promise<GetReportRecordsListResponse>
     >(
-      api.get(REPORT_REQUESTS, {
+      api.get(REPORTS, {
         params: {
           pageSize,
           page,

@@ -36,7 +36,7 @@ export default function ReportRequestListPage() {
     if (ref.current) return;
     ref.current = true;
     dispatch(fetchReportRequests());
-  }, []);
+  }, [dispatch]);
 
   const formatSql = (sql: string) => {
     try {
@@ -126,10 +126,16 @@ export default function ReportRequestListPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
                               <Link
-                                href={`/reports/reportRequests/${reportRequest.id}`}
+                                href={`/reportRequests/${reportRequest.id}`}
                               >
                                 <ExternalLink className="h-4 w-4 mr-2" />
                                 View Full Report Request
+                              </Link>
+                              <Link
+                                href={`/reportRequests/${reportRequest.id}`}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Modify Report Request
                               </Link>
                             </DropdownMenuItem>
                           </DropdownMenuContent>

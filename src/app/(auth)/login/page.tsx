@@ -55,7 +55,7 @@ export default function Page() {
       redirectingRef.current = true;
 
       // Use window.location for a hard navigation to ensure everything is properly loaded
-      window.location.href = "/dashboard";
+      window.location.href = "/propertyDashboard";
     }
   }, [isAuthenticated]);
 

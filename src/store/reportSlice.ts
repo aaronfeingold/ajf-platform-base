@@ -2,8 +2,11 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { ReportState } from "@/types/store";
-import type { GetAllReportRecordCards } from "@/types/api";
-import { getAllReportRecordCards } from "@/actions/report";
+import type {
+  Report,
+  GetAllReportRecordCards,
+  GetReportRecordsListResponse,
+} from "@/types";
 
 const initialState: ReportState = {
   data: {
@@ -14,8 +17,42 @@ const initialState: ReportState = {
   error: null,
 };
 
-// Thunk for fetching reports
-// TODO: BUILD OUT THE THUNK
+const getAllReportRecordCards = async (
+  pageSize = 500
+): Promise<GetAllReportRecordCards> => {
+  const data: Report[] = [];
+  let page = 1;
+  let count = 0;
+
+  while (true) {
+    const response = await fetch(
+      `/api/reports?pageSize=${pageSize}&page=${page}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to generate analysis");
+    }
+    const chunk: GetReportRecordsListResponse = await response.json();
+    if (!count) count = chunk.count;
+    data.push(...chunk.results);
+
+    if (!chunk.next) break;
+    page++;
+  }
+
+  return {
+    count,
+    data,
+    lastFetched: Date.now(),
+  };
+};
+
 export const fetchReports = createAsyncThunk(
   "report/fetchReport",
   async (): Promise<GetAllReportRecordCards> => {

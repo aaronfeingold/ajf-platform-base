@@ -2,9 +2,12 @@
 
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import type { UserState } from "@/types/store";
-import { updatePassword } from "@/actions/user";
+import { updatePassword } from "@/app/(user)/profile/actions/user";
 import type { AuthState } from "@/types/store";
-import { getAllUserRecordCards, getUserById } from "@/actions/user";
+import {
+  getAllUserRecordCards,
+  getUserById,
+} from "@/app/(user)/profile/actions/user";
 import { GetAllUserRecordCards, PaginationParams } from "@/types/api";
 import { User } from "@/types/user";
 

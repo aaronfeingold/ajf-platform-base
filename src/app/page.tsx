@@ -20,7 +20,7 @@ function Home() {
 
     if (isAuthenticated) {
       // If authenticated, redirect to dashboard
-      router.replace("/dashboard");
+      router.replace("/propertyDashboard");
     } else {
       // If not authenticated, redirect to login
       router.replace("/login");
@@ -32,7 +32,7 @@ function Home() {
       setRedirecting(false);
 
       // Force navigation to login if the router redirection fails
-      window.location.href = isAuthenticated ? "/dashboard" : "/login";
+      window.location.href = isAuthenticated ? "/propertyDashboard" : "/login";
     }, 3000);
 
     return () => clearTimeout(timeoutId);

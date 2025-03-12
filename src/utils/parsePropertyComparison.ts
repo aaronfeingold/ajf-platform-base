@@ -1,6 +1,7 @@
 "use client";
 
 import { Report, PropertyComparison } from "../types/report";
+import { camelizeKeys } from "humps";
 
 export interface ParsedReport {
   comparableProperties: PropertyComparison[];
@@ -18,7 +19,10 @@ export const parsePropertyComparison = (report: Report): ParsedReport => {
     );
 
     // Get the most recent comparable (first in the array based on your data structure)
-    const latestComparable = comparableProperties[0];
+    let latestComparable = comparableProperties[0];
+
+    // Convert the latest comparable data keys from snake to camel case
+    latestComparable = camelizeKeys(latestComparable) as PropertyComparison;
 
     return {
       comparableProperties,

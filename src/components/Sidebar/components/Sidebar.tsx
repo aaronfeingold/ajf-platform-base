@@ -4,6 +4,7 @@ import React, { useState, useCallback } from "react";
 import Link from "next/link";
 import BuildingLogo from "@/components/Icons/BuildingLogo";
 import SidebarLinks from "@/components/Sidebar/components/SidebarLinks";
+
 interface SidebarProps {
   handleLogoutClick: () => void;
   onCollapsedChange?: (isCollapsed: boolean) => void;
@@ -15,7 +16,6 @@ const Sidebar = React.memo(function Sidebar({
 }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [forceOpen, setForceOpen] = useState(false);
-  console.log("Sidebar mounted");
 
   const handleMouseEnter = useCallback(() => {
     if (!forceOpen) {
@@ -34,9 +34,10 @@ const Sidebar = React.memo(function Sidebar({
   const toggleForceOpen = useCallback(() => {
     const newForceOpen = !forceOpen;
     setForceOpen(newForceOpen);
-    setIsCollapsed(false);
-    onCollapsedChange?.(false);
+    setIsCollapsed(!newForceOpen);
+    onCollapsedChange?.(!newForceOpen);
   }, [forceOpen, onCollapsedChange]);
+
   return (
     <div
       className={`bg-sidebar min-h-screen transition-all duration-300 ${
@@ -47,7 +48,7 @@ const Sidebar = React.memo(function Sidebar({
     >
       <div className="flex items-center justify-between p-4 border-b border-gray-700">
         <Link
-          href="/dashboard"
+          href="/propertyDashboard"
           onClick={toggleForceOpen}
           className="flex items-center cursor-pointer"
         >
