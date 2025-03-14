@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { useAppSelector } from "@/store/hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -14,24 +13,17 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Eye, FileText, BarChart } from "lucide-react";
-import { fetchReports } from "@/store/reportSlice";
+import { selectAllReports, selectReportStatus } from "@/store/reportSlice";
 import { parsePropertyComparison } from "@/utils/parsePropertyComparison";
 import { Report } from "@/types";
 
 export default function ReportsListPage() {
   const router = useRouter();
-  const ref = useRef(false);
-  const dispatch = useAppDispatch();
-  const { data, status } = useAppSelector((state) => state.report);
+  const { data } = useAppSelector(selectAllReports);
+  const status = useAppSelector(selectReportStatus);
   const reportRequests = useAppSelector(
     (state) => state.reportRequest.data.data
   );
-
-  useEffect(() => {
-    if (ref.current) return;
-    ref.current = true;
-    dispatch(fetchReports());
-  }, [dispatch]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -99,7 +91,7 @@ export default function ReportsListPage() {
           </div>
         </CardHeader>
         <CardContent>
-          {data.data.length === 0 ? (
+          {data.length === 0 ? (
             <div className="text-center py-10">
               <p className="text-gray-500 dark:text-gray-400">
                 No reports found
@@ -125,7 +117,7 @@ export default function ReportsListPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.data.map((report) => (
+                {data.map((report) => (
                   <TableRow key={report.id}>
                     <TableCell>{report.id}</TableCell>
                     <TableCell>{getReportCardTitle(report)}</TableCell>

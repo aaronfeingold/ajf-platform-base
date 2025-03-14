@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { useAppSelector } from "@/store/hooks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
@@ -13,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, ExternalLink } from "lucide-react";
+import { Eye, FileText, Edit, Plus } from "lucide-react";
 import Link from "next/link";
 import {
   DropdownMenu,
@@ -22,47 +21,32 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ReportRequestStatus } from "@/types/reportRequest";
-import { fetchReportRequests } from "@/store/reportRequestSlice";
+import { selectAllReportRequests } from "@/store/reportRequestSlice";
+import { selectAllReports } from "@/store/reportSlice";
 
 export default function ReportRequestListPage() {
-  const ref = useRef(false);
-  const dispatch = useAppDispatch();
-  const {
-    data: { data },
-    status,
-  } = useAppSelector((state) => state.reportRequest);
+  const { data: reportRequests } = useAppSelector(selectAllReportRequests);
 
-  useEffect(() => {
-    if (ref.current) return;
-    ref.current = true;
-    dispatch(fetchReportRequests());
-  }, [dispatch]);
+  const { data: reports } = useAppSelector(selectAllReports);
 
-  const formatSql = (sql: string) => {
-    try {
-      const parsed = JSON.parse(sql);
-      return JSON.stringify(parsed, null, 2);
-    } catch {
-      return sql;
-    }
+  // Function to format dates in a more readable way
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString();
   };
 
-  if (status === "loading") {
-    return (
-      <div className="container mx-auto p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Reports Dashboard</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-96 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+  // Check if a report exists for a report request
+  const hasReport = (reportRequestId: number) => {
+    return reports.some((report) => report.reportRequest === reportRequestId);
+  };
+
+  // Find the report ID for a report request
+  const getReportId = (reportRequestId: number) => {
+    const report = reports.find(
+      (report) => report.reportRequest === reportRequestId
     );
-  }
+    return report?.id;
+  };
 
   return (
     <>
@@ -71,6 +55,12 @@ export default function ReportRequestListPage() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Reports Dashboard</CardTitle>
+              <Button asChild>
+                <Link href="/reportRequests/new">
+                  <Plus className="mr-2 h-4 w-4" />
+                  New Report Request
+                </Link>
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -79,25 +69,20 @@ export default function ReportRequestListPage() {
                 <TableRow>
                   <TableHead>ID</TableHead>
                   <TableHead>Source Parcel</TableHead>
-                  <TableHead>SQL</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Max Peers</TableHead>
                   <TableHead>Max Distance</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Updated</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>Report Request Actions</TableHead>
+                  <TableHead>View Report</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.map((reportRequest) => (
+                {reportRequests.map((reportRequest) => (
                   <TableRow key={reportRequest.id}>
                     <TableCell>{reportRequest.id}</TableCell>
                     <TableCell>{reportRequest.sourceParcelNumber}</TableCell>
-                    <TableCell className="max-w-md">
-                      <pre className="whitespace-pre-wrap text-xs">
-                        {reportRequest.sql && formatSql(reportRequest.sql)}
-                      </pre>
-                    </TableCell>
                     <TableCell>
                       <Badge
                         variant={
@@ -111,36 +96,49 @@ export default function ReportRequestListPage() {
                     </TableCell>
                     <TableCell>{reportRequest.maxNumberOfPeers}</TableCell>
                     <TableCell>{reportRequest.maxDistanceKm}</TableCell>
-                    <TableCell>{reportRequest.created}</TableCell>
-                    <TableCell>{reportRequest.updated}</TableCell>
+                    <TableCell>{formatDate(reportRequest.created)}</TableCell>
+                    <TableCell>{formatDate(reportRequest.updated)}</TableCell>
                     <TableCell>
-                      {reportRequest.status ===
-                        ReportRequestStatus.COMPLETED && (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="outline" size="sm">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4 mr-2" />
+                            Actions
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/reportRequests/${reportRequest.id}`}>
                               <Eye className="h-4 w-4 mr-2" />
-                              View
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
+                              View Details
+                            </Link>
+                          </DropdownMenuItem>
+                          {reportRequest.status !==
+                            ReportRequestStatus.COMPLETED && (
                             <DropdownMenuItem asChild>
                               <Link
-                                href={`/reportRequests/${reportRequest.id}`}
+                                href={`/reportRequests/edit/${reportRequest.id}`}
                               >
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                View Full Report Request
-                              </Link>
-                              <Link
-                                href={`/reportRequests/${reportRequest.id}`}
-                              >
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                Modify Report Request
+                                <Edit className="h-4 w-4 mr-2" />
+                                Modify Request
                               </Link>
                             </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      )}
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                    <TableCell>
+                      {reportRequest.status === ReportRequestStatus.COMPLETED &&
+                        hasReport(reportRequest.id) && (
+                          <Button variant="outline" size="sm" asChild>
+                            <Link
+                              href={`/reports/${getReportId(reportRequest.id)}`}
+                            >
+                              <FileText className="h-4 w-4 mr-2" />
+                              View Report
+                            </Link>
+                          </Button>
+                        )}
                     </TableCell>
                   </TableRow>
                 ))}

@@ -81,3 +81,10 @@ const reportSlice = createSlice({
 });
 
 export default reportSlice.reducer;
+
+export const selectReportStatus = (state: { report: ReportState }) =>
+  state.report.status;
+export const selectReportError = (state: { report: ReportState }) =>
+  state.report.error;
+export const selectAllReports = (state: { report: ReportState }) =>
+  state.report.data;

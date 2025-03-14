@@ -28,8 +28,11 @@ import { useAppDispatch } from "@/store/hooks";
 import { submitNewReportRequest } from "@/store/reportRequestSlice";
 import { propertyClasses } from "@/types/property";
 import type { ReportRequest } from "@/types/reportRequest";
+import { useReportsData } from "@/components/Providers/ReportsDataProvider";
+import { useRouter } from "next/navigation";
 
 export default function CreateReportRequestPage() {
+  const dispatch = useAppDispatch();
   const searchParams = useSearchParams();
   const [parcelNumber, setParcelNumber] = useState<number>(0);
   const [maxPeers, setMaxPeers] = useState("10");
@@ -42,7 +45,8 @@ export default function CreateReportRequestPage() {
     "id" | "status" | "created" | "updated"
   > | null>(null);
 
-  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { refreshData } = useReportsData();
   // Set initial parcel number from URL params if exists
   // otherwise user will need to select parcel from dropdown
   useEffect(() => {
@@ -80,14 +84,21 @@ export default function CreateReportRequestPage() {
 
   const handleConfirmSubmit = async () => {
     // TODO Validate form data:
-    // - Ensure parcel number is not empty
-    // - Ensure maxPeers and maxDistance are valid numbers
-    // - Check is list of property classes
+    //  - parcel number is not empty
+    //  - maxPeers and maxDistance are valid numbers
     if (formData) {
-      await dispatch(submitNewReportRequest(formData)).unwrap();
-      //   router.push("/reports");
-      // now rather than go from page to page, we just update the list of report request
-      // and see the new one in the list in other widget
+      try {
+        const result = await dispatch(
+          submitNewReportRequest(formData)
+        ).unwrap();
+
+        await refreshData();
+        router.push(`/reportRequests/${result.id}`);
+
+        setShowConfirmDialog(false);
+      } catch (error) {
+        console.error("Error creating report request:", error);
+      }
     }
   };
 

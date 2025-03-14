@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect, createElement } from "react";
 import {
   FiUser,
-  FiUpload,
   FiSettings,
   FiHelpCircle,
   FiBarChart2,
@@ -11,6 +10,7 @@ import {
   FiPlusCircle,
   FiList,
   FiHome,
+  FiTool,
 } from "react-icons/fi";
 import { Gauge } from "lucide-react";
 import Link from "next/link";
@@ -39,7 +39,7 @@ const links: SidebarLink[] = [
       {
         href: "/reportRequests/list",
         icon: FiHome,
-        name: "Report Requests List",
+        name: "View Report Requests List",
       },
       {
         href: "/reportRequests/new",
@@ -51,8 +51,8 @@ const links: SidebarLink[] = [
   },
   { href: "/chat", icon: FiMessageSquare, name: "Chat" },
   {
-    href: "#",
-    icon: FiSettings,
+    href: "##",
+    icon: FiTool,
     name: "Settings",
     children: [
       { href: "/preferences", icon: FiSettings, name: "Preferences" },
@@ -118,16 +118,23 @@ export default function SidebarLinks({
 
     return (
       <li className={itemClassName} key={link.href}>
-        <div
-          className={linkClassName}
-          onClick={() => (hasChildren ? toggleDropdown(link.href) : null)}
-          style={{ cursor: "pointer" }}
-        >
+        <div className={linkClassName} style={{ cursor: "pointer" }}>
           <div className="flex items-center">
             {createElement(link.icon, { size: 20 })}
             {!isCollapsed && (
               <Link href={link.href}>
-                <span className="ml-3">{link.name}</span>
+                <span
+                  className="ml-3"
+                  onClick={(e) => {
+                    if (hasChildren) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleDropdown(link.href);
+                    }
+                  }}
+                >
+                  {link.name}
+                </span>
               </Link>
             )}
           </div>

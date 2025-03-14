@@ -1,10 +1,10 @@
 "use client";
 
 import { withAuth } from "@/hooks/useProtectedRoute";
-import ViewReportRequestPage from "@/components/Reports/ViewReportRequestPage";
+import EditReportRequestPage from "@/components/Reports/EditReportRequestPage";
 
 function Page() {
-  return <ViewReportRequestPage />;
+  return <EditReportRequestPage />;
 }
 
 export default withAuth(Page);
